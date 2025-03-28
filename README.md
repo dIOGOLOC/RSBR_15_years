@@ -14,13 +14,15 @@ The following libraries are used in this project:
 - [SciPy](https://scipy.org/): A library for scientific and technical computing, offering algorithms for optimization, integration, interpolation, and more.
 - [Matplotlib](https://matplotlib.org/): Visualization library for creating static, animated, and interactive plots.
 - [tqdm](https://github.com/tqdm/tqdm): Library for displaying progress bars in loops and scripts.
+- [kneed](https://kneed.readthedocs.io/en/latest/#): Library to identify the knee/elbow point of a line fit to the data.
+
 
 ## 📀 Installation 📀
 
 To use the provided notebooks, install the required dependencies using pip:
 
 ```bash
-pip install numpy pandas pyarrow matplotlib tqdm
+pip install numpy pandas pyarrow matplotlib tqdm kneed
 ```
 
 ## 🏗️ Project structure 🏗️
