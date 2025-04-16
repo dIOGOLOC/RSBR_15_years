@@ -1,0 +1,11 @@
+jupyterlab
+myst-parser
+sphinx
+nbsphinx
+furo
+numpy
+matplotlib
+ObsPy
+pyarrow
+tqdm
+pandas
