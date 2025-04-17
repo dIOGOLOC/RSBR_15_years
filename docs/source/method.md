@@ -1,6 +1,6 @@
 # Methodology
 
-<span style="display:block;text-align:center">![image](/docs/source/_static/images/flowchart_method.png)
+<span style="display:block;text-align:center">![image](/_static/images/flowchart_method.png)
 
 
 ## Input data step
