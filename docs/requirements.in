@@ -1,5 +1,6 @@
 jupyterlab
 myst-parser
+sphinx-rtd-theme
 sphinx
 nbsphinx
 furo
