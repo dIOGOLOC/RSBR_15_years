@@ -6,7 +6,7 @@
 Welcome to RSBR 15 years's documentation!
 =========================================
 
-<span style="display:block;text-align:center">![image](/_static/images/logo.png)
+<span style="display:block;text-align:center">![image](/docs/source/_static/images/logo.png)
 
 This repository contains reproducible material for the study "15 years of the Brazilian Seismographic Network: Data quality and Current Status" by Diogo Luiz de Oliveira Coelho, Gilberto da Silva Leite Neto,Sergio Luiz Fontes, submitted to ....
 
