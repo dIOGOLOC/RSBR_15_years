@@ -17,6 +17,15 @@ from obspy.imaging.beachball import beach
 import os
 import numpy as np
 
+from parameters_py.config import (
+					WAVEFORM_DIR,CATALOG_FILE,XML_DIR,SSPARQ_OUTPUT,num_processes,TIME_FINAL_P,TIME_WINDOW
+				   )
+
+
+from src.utils import (
+					quakeml_to_dataframe,moment_tensor_to_nodal_planes,calculate_plunge,mecclass,adjust_baz_for_ZEN,rms,energy,
+                    format_y_ticks,calculate_quartis_mask
+				   )
 
 # Sets the global font size
 plt.rcParams.update({'font.size': 14}) 
@@ -25,14 +34,8 @@ plt.rcParams.update({'font.size': 14})
 # Functions #
 # --------- #
 
-def format_y_ticks(value, _):
-    '''
-    Format y-label to degrees
-    '''
-    return f"{value:.0f}°"
 
-
-def plotting_event_orientation(df_row,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT):
+def plotting_event_orientation(df_row,SSPARQ_OUTPUT=SSPARQ_OUTPUT,TIME_FINAL_P=TIME_FINAL_P,TIME_WINDOW=TIME_WINDOW):
     df_row = df_row[1]
 
     # -------------------------------------------
@@ -82,16 +85,28 @@ def plotting_event_orientation(df_row,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT):
 
     qc_symbol = '[✔]' if df_row['quality'] == 'good' else '[✘]'
 
-    fig.suptitle(
-    f"{qc_symbol} Evento: {df_row['evname']} "
-    f"(Δ: {round(df_row['gcarc'])}° | M: {round(df_row['evmag'],1)} {df_row['evtype']} | "
-    f"D: {round(df_row['evdp'])} km | C: {df_row['event_class']}) \n "
-    f"SNR: {df_row['SNR']} dB | BAZ: {round(df_row['baz'])}° | "
-    f"PHI: {df_row['phi']}° | theta: {df_row['theta']}° | "
-    f"TI: {df_row['clock_error']}s | "
-    f"GN: {df_row['gain_HHN']:.2e} | GE: {df_row['gain_HHE']:.2e}  | GZ: {df_row['gain_HHZ']:.2e}", 
-    fontsize=15)    
-    
+    if not df_row.get('event_class'):
+
+        fig.suptitle(
+        f"{qc_symbol} Evento: {df_row['evname']} "
+        f"(Δ: {round(df_row['gcarc'])}° | M: {round(df_row['evmag'],1)} {df_row['evtype']} | "
+        f"D: {round(df_row['evdp'])} km) \n "
+        f"SNR: {df_row['SNR']} dB | BAZ: {round(df_row['baz'])}° | "
+        f"PHI: {df_row['phi']}° | theta: {df_row['theta']}° | "
+        f"TI: {df_row['clock_error']}s | "
+        f"GN: {df_row['gain_HHN']:.2e} | GE: {df_row['gain_HHE']:.2e}  | GZ: {df_row['gain_HHZ']:.2e}", 
+        fontsize=15)    
+    else:
+        fig.suptitle(
+        f"{qc_symbol} Evento: {df_row['evname']} "
+        f"(Δ: {round(df_row['gcarc'])}° | M: {round(df_row['evmag'],1)} {df_row['evtype']} | "
+        f"D: {round(df_row['evdp'])} km | C: {df_row['event_class']}) \n "
+        f"SNR: {df_row['SNR']} dB | BAZ: {round(df_row['baz'])}° | "
+        f"PHI: {df_row['phi']}° | theta: {df_row['theta']}° | "
+        f"TI: {df_row['clock_error']}s | "
+        f"GN: {df_row['gain_HHN']:.2e} | GE: {df_row['gain_HHE']:.2e}  | GZ: {df_row['gain_HHZ']:.2e}", 
+        fontsize=15)  
+        
     # creating grid
     gs = fig.add_gridspec(1, 2,width_ratios=[5,1])
 
@@ -208,53 +223,59 @@ def plotting_event_orientation(df_row,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT):
     ax_map.scatter(df_row['evlo'],df_row['evla'],color="y",marker='*',s=200,ec='k',transform=ccrs.PlateCarree())
     ax_map.scatter(df_row['stlo'],df_row['stla'],color="r",marker='^',s=50,transform=ccrs.PlateCarree())
     ax_map.plot([df_row['stlo'], df_row['evlo']], [df_row['stla'], df_row['evla']], c='gray',ls='-',lw=2, transform=ccrs.Geodetic())
-   
-    # ===================================================================================
-    # focal mechanism (https://docs.obspy.org/tutorial/code_snippets/beachball_plot.html)
-    # ===================================================================================
-                                    
-    # ---------------------------
-    # Plotting: adding a new axes
-                                    
-    newax = fig.add_axes([-0.06, 0.34, 0.3,  0.3])
-    
-    # -----------------------------------------
-    # Computing: Retrieving moment tensor info
-                                            
-    mt = df_row['moment tensor'] 
-    
-    # -----------------------------------------------------------------------------------------------------------------------------------------
-    # Plotting: graphical representation of a focal mechanism (https://docs.obspy.org/packages/autogen/obspy.imaging.beachball.beachball.html)
 
-    # Normalize event depth values between 0 and 600 km:
-    min_val = 0
-    max_val = 600
-    normalized_values = [(x - min_val) / (max_val - min_val) for x in np.arange(min_val, max_val,10)]
+    mt = df_row.get('moment tensor')
 
-    # Colormap "Plasma" for each value
-    colors = [plt.cm.Spectral(value) for value in normalized_values]
-                                                                        
-    # Convert colors RGB to hexadecimal:
-    hex_colors = [mcolors.rgb2hex(color) for color in colors]
+    if mt is not None and len(mt):
+    # continue com o plot
+    #if df_row.get('moment tensor'):
 
-    # Find the color for a given depth
-    diff_ev_depth = [np.abs(numero - df_row['evdp']) for numero in np.arange(min_val, max_val,10)]
+        # ===================================================================================
+        # focal mechanism (https://docs.obspy.org/tutorial/code_snippets/beachball_plot.html)
+        # ===================================================================================
                                         
-    # Find the min index for a given depth
-    index_min_ev_depth = diff_ev_depth.index(min(diff_ev_depth))
-
-    # Plotting the hexcolor
-    bball = beach(fm=mt, xy=(0, 0.5),size=200, width=0.75, facecolor=hex_colors[index_min_ev_depth])
+        # ---------------------------
+        # Plotting: adding a new axes
+                                        
+        newax = fig.add_axes([-0.06, 0.34, 0.3,  0.3])
         
-    # -------------------------
-    # Plotting: axes parameters 
-                                
-    newax.add_collection(bball)
-    newax.set_xlim(-1, 1)
-    newax.set_ylim(-1, 1)
-    newax.set_aspect('equal')
-    newax.axis('off')
+        # -----------------------------------------
+        # Computing: Retrieving moment tensor info
+                                                
+        mt = df_row['moment tensor'] 
         
+        # -----------------------------------------------------------------------------------------------------------------------------------------
+        # Plotting: graphical representation of a focal mechanism (https://docs.obspy.org/packages/autogen/obspy.imaging.beachball.beachball.html)
+    
+        # Normalize event depth values between 0 and 600 km:
+        min_val = 0
+        max_val = 600
+        normalized_values = [(x - min_val) / (max_val - min_val) for x in np.arange(min_val, max_val,10)]
+    
+        # Colormap "Plasma" for each value
+        colors = [plt.cm.Spectral(value) for value in normalized_values]
+                                                                            
+        # Convert colors RGB to hexadecimal:
+        hex_colors = [mcolors.rgb2hex(color) for color in colors]
+    
+        # Find the color for a given depth
+        diff_ev_depth = [np.abs(numero - df_row['evdp']) for numero in np.arange(min_val, max_val,10)]
+                                            
+        # Find the min index for a given depth
+        index_min_ev_depth = diff_ev_depth.index(min(diff_ev_depth))
+    
+        # Plotting the hexcolor
+        bball = beach(fm=mt, xy=(0, 0.5),size=200, width=0.75, facecolor=hex_colors[index_min_ev_depth])
+            
+        # -------------------------
+        # Plotting: axes parameters 
+                                    
+        newax.add_collection(bball)
+        newax.set_xlim(-1, 1)
+        newax.set_ylim(-1, 1)
+        newax.set_aspect('equal')
+        newax.axis('off')
+            
     # ===========================================================
     # ray paths (https://docs.obspy.org/packages/obspy.taup.html)
     # ===========================================================
@@ -273,133 +294,7 @@ def plotting_event_orientation(df_row,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT):
         
     # ==========================================
     
-    output_figure_ORIENTATION = ORIENTATION_OUTPUT+'ORIENTATION_FIGURES/EARTHQUAKES/'+df_row['network']+'.'+df_row['station']+'/'
-    os.makedirs(output_figure_ORIENTATION,exist_ok=True)
-    fig.savefig(output_figure_ORIENTATION+'ORIENTATION_'+df_row['station']+'_'+df_row['evname']+'_'+df_row['quality']+'.png',dpi=100)
+    output_figure_SSPARQ = SSPARQ_OUTPUT+'FIGURES/EARTHQUAKES/'+df_row['network']+'.'+df_row['station']+'/'
+    os.makedirs(output_figure_SSPARQ,exist_ok=True)
+    fig.savefig(output_figure_SSPARQ+'METRICS_'+df_row['station']+'_'+df_row['evname']+'_'+df_row['quality']+'.png',dpi=100)
     plt.close()
-# -------------------
-
-def plotting_station_event_histogram(station_df,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT):
-    
-    # Create figure:
-    fig = plt.figure(figsize=(15,10))
-    gs = gridspec.GridSpec(1,1)
-    
-    # Create map plot:
-    ax1 = fig.add_subplot(gs[:], projection=ccrs.Mollweide())
-
-    # Create histogram insets:
-    ax2 = inset_axes(ax1, width=2, height=0.75,bbox_to_anchor=(0.2, 1.),bbox_transform=ax1.transAxes, loc="center", borderpad=0)
-    ax3 = inset_axes(ax1, width=2, height=0.75,bbox_to_anchor=(0.4, 1.),bbox_transform=ax1.transAxes, loc="center", borderpad=0)
-    ax4 = inset_axes(ax1, width=2, height=0.75,bbox_to_anchor=(0.6, 1.),bbox_transform=ax1.transAxes, loc="center", borderpad=0)
-    ax5 = inset_axes(ax1, width=2, height=0.75,bbox_to_anchor=(0.8, 1.),bbox_transform=ax1.transAxes, loc="center", borderpad=0)
-    
-    # Generate evenly spaced values between 0 and 1 for the colormap:
-    colors = plt.cm.nipy_spectral(np.linspace(0, 1, len(station_df['station'].unique())))
-    
-    # Create a mapping from station to color:
-    station_color_map = dict(zip(station_df['station'].unique(), colors))
-
-    # Loop over each station:
-    for sta in station_df['station'].unique():
-        df_sta = station_df[station_df['station'] == sta]
-        cs = station_color_map[sta]
-    
-        # letter a):
-        ax1.text(0.05,0.9,'a)', fontsize=14, verticalalignment='center', horizontalalignment='center',transform=ax1.transAxes)
-    
-        # Plotting stations:
-        for lon, lat in zip(df_sta['stlo'].unique(),df_sta['stla'].unique()):
-        	ax1.plot(lon, lat, '^',markersize=10,markeredgecolor='k',markerfacecolor=cs, transform=ccrs.Geodetic())
-        
-        # Use the cartopy interface to create a matplotlib transform object
-        # for the Geodetic coordinate system. We will use this along with
-        # matplotlib's offset_copy function to define a coordinate system which
-        geodetic_transform = ccrs.Geodetic()._as_mpl_transform(ax1)
-        text_transform = offset_copy(geodetic_transform, units='dots', x=5,y=50)
-    
-        # Plotting stations names:
-        for lon, lat, net_n,sta_n in zip(df_sta['stlo'].unique(),df_sta['stla'].unique(),df_sta['network'].unique(),df_sta['station'].unique()):
-            ax1.text(lon, lat,net_n+'.'+sta_n, verticalalignment='center', horizontalalignment='center',transform=text_transform,bbox=dict(facecolor='w', alpha=0.5, boxstyle='round'))
-    
-        # Plotting earthquakes:
-        for lon, lat in zip(df_sta['evlo'].values,df_sta['evla'].values):
-        	ax1.plot(lon, lat, '*',markersize=6,markeredgecolor='k',markerfacecolor=cs, transform=ccrs.Geodetic(),alpha=0.5)
-    
-        # draw coastlines and borders:
-        ax1.stock_img()
-        ax1.add_feature(cfeature.LAND)
-        ax1.add_feature(cfeature.COASTLINE)
-        ax1.add_feature(cfeature.BORDERS, lw=0.5)
-        
-        #############
-        # Histogram of distance:
-        ax2.hist(df_sta['gcarc'].values,bins=50,orientation='vertical',color=cs,alpha=0.5)
-        ax2.set_title("DIST",y=0.5)
-        ax2.text(0.1,0.85,'b)', fontsize=14, verticalalignment='center', horizontalalignment='center',transform=ax2.transAxes)
-        ax2.tick_params(axis="x", which='both', labelbottom=False, labeltop=True,top=True, rotation=30)
-        ax2.set_ylim(0,200)
-    
-        #############
-        # Histogram of signal-to-noise:
-        ax3.hist(df_sta['SNR'].values,bins=50,orientation='vertical',color=cs,alpha=0.5)
-        ax3.set_title("SNR",y=0.5)
-        ax3.text(0.1,0.85,'c)', fontsize=14, verticalalignment='center', horizontalalignment='center',transform=ax3.transAxes)
-        ax3.tick_params(axis="x", which='both', labelbottom=False, labeltop=True,top=True, rotation=30)
-        ax3.set_ylim(0,200)
-        
-        #############
-        # Histogram of magnitude:
-        ax4.hist(df_sta['evmag'].values,bins=50,orientation='vertical',color=cs,alpha=0.5) 
-        ax4.set_title("MAG",y=0.5)
-        ax4.set_xlim(5.5,9)
-        ax4.set_ylim(0,200)
-        ax4.text(0.1,0.85,'d)', fontsize=14, verticalalignment='center', horizontalalignment='center',transform=ax4.transAxes)
-        ax4.tick_params(axis="x", which='both', labelbottom=False, labeltop=True,top=True, rotation=30)
-    
-        #############
-        # Histogram of time (year):
-        ax5.hist(df_sta['evtime'].dt.year,bins=10,orientation='vertical',color=cs,alpha=0.5)
-        ax5.set_title("YEAR",y=0.5)
-        ax5.text(0.1,0.85,'e)', fontsize=14, verticalalignment='center', horizontalalignment='center',transform=ax5.transAxes)
-        ax5.tick_params(axis="x", which='both', labelbottom=False, labeltop=True,top=True, rotation=30)
-        ax5.set_ylim(0,200)
-        
-        plt.tight_layout()
-        
-        # Saving figure
-        output_figure_ORIENTATION = ORIENTATION_OUTPUT + 'ORIENTATION_FIGURES/'
-        os.makedirs(output_figure_ORIENTATION, exist_ok=True)
-        fig.savefig(output_figure_ORIENTATION + f'LOCATION_STATIONS.png',facecolor='w',dpi=300,pad_inches=0.1)
-        plt.close()
-
-def classification_plot_N_Z_ratio(df_sta,ORIENTATION_OUTPUT=ORIENTATION_OUTPUT)
-
-    # Create colors for each earthquake source
-    classes = ['N','N-SS','SS-N','SS','SS-R','R-SS','R']
-    colors = [mcolors.to_rgba(plt.cm.RdYlBu(each),alpha=0.5) for each in np.linspace(0, 1, len(classes))]
-    color_map = dict(zip(classes, colors))
-    
-    # Create figure
-    fig, axes = plt.subplots(2,4, figsize=(10, 5),sharex=True,sharey=True)
-    axes = axes.flatten()
-    
-    # Subplot for each class
-    for i in range(len(classes)):
-        axes[i].set_title(classes[i])
-    
-        df_sta_class = df_sta[df_sta['event_class'] == classes[i]]
-        ratio = df_sta_class['gain_HHN'] / df_sta_class['gain_HHZ']
-        axes[i].hist(ratio, bins=100, color='k', edgecolor='k', alpha=0.75)
-        axes[i].set_xlim(0,5)
-    
-    # Exclude last axis
-    axes[-1].axis('off')
-    
-    # Final adjust
-    plt.tight_layout(rect=[0, 0, 1, 0.97])
-    
-    # Saving figure
-    output_figure_CLASS = ORIENTATION_OUTPUT + 'EVENT_CLASS_FIGURES/'
-    os.makedirs(output_figure_CLASS, exist_ok=True)
-    fig.savefig(output_figure_CLASS + f'CLASS_HISTOGRAM_RZ_TOTAL.png',facecolor='w',dpi=300)

@@ -34,24 +34,25 @@
 ## The basic directory and file layout is defined as:
 ## <SDSdir>/Year/NET/STA/CHAN.TYPE/NET.STA.LOC.CHAN.TYPE.YEAR.DAY
 
-WAVEFORM_DIR = /media/sysop/14f7ead0-5dcb-4557-a139-55dbb404d11a/diogoloc/dados_posdoc/RSBR_15_years/obspyDMT/mvco/
+WAVEFORM_DIR = /home/sysop/dados_posdoc/PROJETO_RSBR_15_YEARS/obspyDMT/mvco/US.MVCO/
 
 ## ---------------------------
 ## Directory with the catalog (.CSV file of the National Earthquake Information Center (NEIC))
 ## The file layout is defined as:
 ## time,latitude,longitude,depth,mag,magType,nst,gap,dmin,rms,net,id,updated,place,type,horizontalError,depthError,magError,magNst,status,locationSource,magSource
-
-CATALOG_FILE = /media/sysop/14f7ead0-5dcb-4557-a139-55dbb404d11a/diogoloc/dados_posdoc/RSBR_15_years/obspyDMT/CATALOG/CMTSOLUTIONS_2010_2025.xml
+## or
+## QUAKEML ()
+CATALOG_FILE = /home/sysop/dados_posdoc/PROJETO_RSBR_15_YEARS/obspyDMT/CATALOG/CMTSOLUTIONS_2010_2025.xml
 
 ## ----------------------------
 ## Directory of the StationXML:
 
-XML_DIR = /media/sysop/14f7ead0-5dcb-4557-a139-55dbb404d11a/diogoloc/dados_posdoc/RSBR_15_years/obspyDMT/mvco/XML/
+XML_DIR = /home/sysop/dados_posdoc/PROJETO_RSBR_15_YEARS/obspyDMT/mvco/XML/
 
 ## -----------------------
 ## Directory of the output (Figures and Feathers file)
 
-ORIENTATION_OUTPUT = /media/sysop/14f7ead0-5dcb-4557-a139-55dbb404d11a/diogoloc/dados_posdoc/RSBR_15_years/obspyDMT/OUTPUT_NEW/
+SSPARQ_OUTPUT = /home/sysop/dados_posdoc/PROJETO_RSBR_15_YEARS/obspyDMT/OUTPUT/
 
 #======
 [event]

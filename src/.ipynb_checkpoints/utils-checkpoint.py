@@ -1,5 +1,7 @@
+import numpy as np
+import pandas as pd
+import math
 from obspy import read_events
-
 
 def quakeml_to_dataframe(quakeml_file):
     # Read the QuakeML file using ObsPy
@@ -11,10 +13,7 @@ def quakeml_to_dataframe(quakeml_file):
         # Extract basic event information
         origin = event.preferred_origin() or event.origins[0]
         magnitude = event.preferred_magnitude() or event.magnitudes[0]
-        
-        # Extract moment tensor (if available)
-        moment_tensor = [0, 0, 0, 0, 0, 0]  # Default if no tensor exists
-        
+                
         if event.focal_mechanisms:
             fm = event.focal_mechanisms[0]
             if fm.moment_tensor:
@@ -28,17 +27,25 @@ def quakeml_to_dataframe(quakeml_file):
                     -mt.m_tp   # Mtf = -Mtp
                 ]
 
-        # Append event data to entries list
-        entries.append({
-            'time': origin.time.datetime,
-            'latitude': origin.latitude,
-            'longitude': origin.longitude,
-            'depth': origin.depth / 1000,  # Convert from m to km
-            'mag': magnitude.mag,
-            'magType': magnitude.magnitude_type,
-            'moment tensor': moment_tensor
-        })
-    
+            # Append event data to entries list
+            entries.append({
+                'time': origin.time.datetime,
+                'latitude': origin.latitude,
+                'longitude': origin.longitude,
+                'depth': origin.depth / 1000,  # Convert from m to km
+                'mag': magnitude.mag,
+                'magType': magnitude.magnitude_type,
+                'moment tensor': moment_tensor})
+        else:
+            # Append event data to entries list
+            entries.append({
+                'time': origin.time.datetime,
+                'latitude': origin.latitude,
+                'longitude': origin.longitude,
+                'depth': origin.depth / 1000,  # Convert from m to km
+                'mag': magnitude.mag,
+                'magType': magnitude.magnitude_type})
+        
     # Convert to DataFrame
     df = pd.DataFrame(entries)
     return df

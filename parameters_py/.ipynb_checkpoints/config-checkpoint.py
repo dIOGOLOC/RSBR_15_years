@@ -89,7 +89,7 @@ XML_DIR = config.get('paths', 'XML_DIR')
 ## -----------------------
 ## Directory of the output (Figures and Feathers file)
 
-ORIENTATION_OUTPUT = config.get('paths', 'ORIENTATION_OUTPUT')
+SSPARQ_OUTPUT = config.get('paths', 'SSPARQ_OUTPUT')
 
 # ------
 # event
@@ -104,7 +104,7 @@ TAUPY_MODEL = config.get('event', 'TAUPY_MODEL')
 
 PERIOD_BANDS_MAX = config.getfloat('event', 'PERIOD_BANDS_MAX')
 
-PERIOD_BANDS_Min = config.getfloat('event', 'PERIOD_BANDS_Min')
+PERIOD_BANDS_MIN = config.getfloat('event', 'PERIOD_BANDS_MIN')
 
 ## ===================================================================================
 ## Default parameters to define the signal and noise windows used to estimate the SNR:
@@ -122,5 +122,5 @@ TIME_FINAL_P = config.getfloat('event', 'TIME_FINAL_P')
 ## ---------------
 ## MULTIPROCESSING
 
-num_processes = config.getfloat('event', 'num_processes')
+num_processes = config.getint('event', 'num_processes')
 
