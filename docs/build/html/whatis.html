@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Usage" href="usage.html" />
-    <link rel="prev" title="Welcome to RSBR 15 years’s documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to SSPARQ’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +46,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#methodological-approach">Methodological Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#methodological-approach">Methodological Approach</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#theoretical-basis">Theoretical Basis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#processing-workflow">Processing Workflow</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#key-advantages">Key Advantages</a></li>
 </ul>
 </li>
@@ -85,43 +89,61 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="project-overview">
 <h1>Project Overview<a class="headerlink" href="#project-overview" title="Link to this heading"></a></h1>
+<p><span style="display:block;text-align:center"><img alt="image" src="_images/logo_mini.png" /></p>
 <p><a class="reference external" href="https://www.python.org/">Python</a>-based solution for processing seismological data to estimate:</p>
 <ul class="simple">
-<li><p>Sensor misorientation</p></li>
-<li><p>Time instability</p></li>
-<li><p>Instrumental gain</p></li>
+<li><p>Sensor misorientation (deviation from true north)</p></li>
+<li><p>Clock synchronization errors (timing irregularities)</p></li>
+<li><p>Instrumental gain variations (component sensitivity differences)</p></li>
 </ul>
-<p>through analysis of P-wave energy characteristics.</p>
+<p>through P-wave polarization analysis in three-component seismic recordings.</p>
 <section id="methodological-approach">
 <h2>Methodological Approach<a class="headerlink" href="#methodological-approach" title="Link to this heading"></a></h2>
-<p>The technique operates under the assumption of a homogeneous and isotropic medium beneath the seismic station. The workflow involves:</p>
-<p><strong>1. Component Rotation</strong></p>
-<p>Raw seismic signal components (Z, N, E) are transformed into the ZRT coordinate system (Vertical, Radial, Transverse) using earthquake-to-station backazimuth information.</p>
-<p><strong>2. Energy Distribution Analysis</strong></p>
-<p>In an ideal isotropic Earth model:</p>
+<section id="theoretical-basis">
+<h3>Theoretical Basis<a class="headerlink" href="#theoretical-basis" title="Link to this heading"></a></h3>
+<p>The method assumes a homogeneous, isotropic medium beneath the station, where:</p>
 <ul class="simple">
-<li><p>P-wave energy predominantly appears on vertical and radial components</p></li>
-<li><p>Transverse component energy should be minimal</p></li>
+<li><p>P-wave energy should appear primarily on the vertical (Z) and radial (R) components</p></li>
+<li><p>Transverse (T) component energy should be minimal</p></li>
 </ul>
-<p><strong>3. Optimization Process</strong></p>
-<p>We systematically test rotations from 0° to 180° to:</p>
+</section>
+<section id="processing-workflow">
+<h3>Processing Workflow<a class="headerlink" href="#processing-workflow" title="Link to this heading"></a></h3>
+<p><strong>1. Coordinate Transformation</strong></p>
+<p>Raw seismic signal components (Z, N, E) are transformed into the ZRT coordinate system (Vertical, Radial, Transverse) using earthquake-to-station backazimuth information.</p>
+<p><strong>2. Optimal Orientation Estimation</strong></p>
+<p>Test rotations from 0° to 180° to:</p>
 <ul class="simple">
-<li><p>Minimize transverse component energy</p></li>
-<li><p>Determine optimal station misorientation from true north</p></li>
+<li><p>Minimize transverse-component energy (P-wave leakage)</p></li>
+<li><p>Maximize vertical-radial correlation (Pearson coefficient positive)</p></li>
+</ul>
+<p>Resolve 180° ambiguity using cross-component phase analysis.</p>
+<p><strong>3. Quality Control</strong></p>
+<p>Apply strict validation criteria:</p>
+<ul class="simple">
+<li><p>Signal-to-noise ratio (SNR) on vertical component</p></li>
+<li><p>Transverse-to-radial (T/R) energy ratio</p></li>
+<li><p>Radial-to-vertical (R/Z) energy ratio</p></li>
 </ul>
 <p><strong>4. Statistical Robustness</strong></p>
-<p>The solution incorporates multiple earthquakes from diverse backazimuths to:</p>
+<p>Aggregate results from multiple events across different backazimuths to:</p>
 <ul class="simple">
-<li><p>Mitigate local structural effects</p></li>
-<li><p>Reduce anisotropy influences</p></li>
-<li><p>Enhance measurement reliability</p></li>
+<li><p>Reduce bias from local structures</p></li>
+<li><p>Improve measurement reliability</p></li>
 </ul>
+<p><strong>5. Trend Analysis</strong></p>
+<p>Apply DBSCAN (Density-Based Spatial Clustering of Applications with Noise) clustering to identify:</p>
+<ul class="simple">
+<li><p>Consistent misorientation trends</p></li>
+<li><p>Outliers (potentially indicating timing/gain issues)</p></li>
+</ul>
+</section>
 </section>
 <section id="key-advantages">
 <h2>Key Advantages<a class="headerlink" href="#key-advantages" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Python Implementation: Leverages Python’s scientific computing ecosystem</p></li>
-<li><p>Comprehensive Analysis: Simultaneously evaluates multiple instrumentation parameters</p></li>
+<li><p>Multi-parameter analysis: Simultaneously evaluates multiple instrumentation parameters</p></li>
 <li><p>Empirical Validation: Uses real-world seismic events for calibration</p></li>
 </ul>
 </section>
@@ -131,7 +153,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to RSBR 15 years’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to SSPARQ’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

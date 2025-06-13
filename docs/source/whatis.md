@@ -1,44 +1,59 @@
 # Project Overview
 
+<span style="display:block;text-align:center">![image](_static/images/logo_mini.png)
+
 [Python](https://www.python.org/)-based solution for processing seismological data to estimate:
 
-- Sensor misorientation
+- Sensor misorientation (deviation from true north)
+- Clock synchronization errors (timing irregularities)
+- Instrumental gain variations (component sensitivity differences)
 
-- Time instability
-
-- Instrumental gain
-
-through analysis of P-wave energy characteristics.
+through P-wave polarization analysis in three-component seismic recordings.
 
 ## Methodological Approach
 
-The technique operates under the assumption of a homogeneous and isotropic medium beneath the seismic station. The workflow involves:
+### Theoretical Basis
 
-**1. Component Rotation**
+The method assumes a homogeneous, isotropic medium beneath the station, where:
+
+- P-wave energy should appear primarily on the vertical (Z) and radial (R) components
+- Transverse (T) component energy should be minimal
+
+### Processing Workflow
+
+**1. Coordinate Transformation**
 
 Raw seismic signal components (Z, N, E) are transformed into the ZRT coordinate system (Vertical, Radial, Transverse) using earthquake-to-station backazimuth information.
 
-**2. Energy Distribution Analysis**
+**2. Optimal Orientation Estimation**
 
-In an ideal isotropic Earth model:
-  - P-wave energy predominantly appears on vertical and radial components
-  - Transverse component energy should be minimal
+Test rotations from 0° to 180° to:
+  - Minimize transverse-component energy (P-wave leakage)
+  - Maximize vertical-radial correlation (Pearson coefficient positive)
 
-**3. Optimization Process**
+Resolve 180° ambiguity using cross-component phase analysis.
 
-We systematically test rotations from 0° to 180° to:
-- Minimize transverse component energy
-- Determine optimal station misorientation from true north
+**3. Quality Control**
+
+Apply strict validation criteria:
+- Signal-to-noise ratio (SNR) on vertical component
+- Transverse-to-radial (T/R) energy ratio
+- Radial-to-vertical (R/Z) energy ratio
 
 **4. Statistical Robustness**
 
-The solution incorporates multiple earthquakes from diverse backazimuths to:
-- Mitigate local structural effects
-- Reduce anisotropy influences
-- Enhance measurement reliability
+Aggregate results from multiple events across different backazimuths to:
+- Reduce bias from local structures
+- Improve measurement reliability
+
+**5. Trend Analysis**
+
+Apply DBSCAN (Density-Based Spatial Clustering of Applications with Noise) clustering to identify:
+- Consistent misorientation trends
+- Outliers (potentially indicating timing/gain issues)
 
 ## Key Advantages
 
 - Python Implementation: Leverages Python's scientific computing ecosystem
-- Comprehensive Analysis: Simultaneously evaluates multiple instrumentation parameters
+- Multi-parameter analysis: Simultaneously evaluates multiple instrumentation parameters
 - Empirical Validation: Uses real-world seismic events for calibration
