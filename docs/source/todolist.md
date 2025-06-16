@@ -6,7 +6,7 @@
 
 - [x] Improve the documentation.
 - [x] Create docstring for each function in the code.
-- [ ] Create the figures to show each processing step.
+- [ ] Add figures to show each processing step.
 - [ ] Update the requirements.in file.
 - [ ] ...
 - [ ] When all tasks are complete

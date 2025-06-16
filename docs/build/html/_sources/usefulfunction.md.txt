@@ -3,50 +3,52 @@
 ## Find sensor misorientation
 
 ```{eval-rst}
-.. py:function:: find_orientation(baz, SS, SZR, ERTR, ERRZ):
+.. py:function:: find_orientation(baz, SS, CCRZ, ETER, EREZ):
 
-    Calculates optimal back-azimuth (φ) and sensor misorientation (θ) by evaluating:
+    This function calculates the best back azimuth (φ) and sensor misorientation (θ) based on the 
+    given quality criteria: 
+    
+    - Transverse signal strength (SS),
+    - Similarity of radial and vertical components (CCRZ), 
+    - Transverse-to-radial energy ratio (ETER), and 
+    - Radial-to-vertical energy ratio (EREZ).
 
-    - Signal strength (SS)
-    - Vertical-radial component similarity (SZR)
-    - Transverse-to-radial energy ratio (ERTR)
-    - Radial-to-vertical energy ratio (ERRZ)
-
-    The cost function combines these criteria to maximize solution quality through systematic azimuth search.
+    The cost function combines these criteria in such a way that minimazing the cost function helps to
+    find the optimal back azimuth and corresponding orientation. The function outputs the best back azimuth, orientation, and the values of the quality criteria at the best azimuth index.
 
     :type baz: float
     :param baz: Initial back-azimuth from taup model (degrees)
     :type SS: numpy.ndarray
-    :param SS: Signal strength array (0-1 normalized)
-    :type SZR: numpy.ndarray
-    :param SZR: Vertical-radial similarity array (correlation coefficients)
-    :type ERTR: numpy.ndarray
-    :param ERTR: Transverse-to-radial energy ratios
-    :type ERRZ: numpy.ndarray
-    :param ERRZ: Radial-to-vertical energy ratios
-    :returns: φ, θ, SS_best, SZR_best, ERTR_best, ERRZ_best
+    :param SS: Transverse signal strength array (0 to 1 normalized)
+    :type CCRZ: numpy.ndarray
+    :param CCRZ: Vertical-radial similarity array (-1 to 1 normalized)
+    :type ETER: numpy.ndarray
+    :param ETER: Transverse-to-radial energy ratios
+    :type EREZ: numpy.ndarray
+    :param EREZ: Radial-to-vertical energy ratios
+
+    :returns: φ, θ, SS_best, SZR_best, ETERR_best, EREZ_best
     :rtype: tuple of (float, float, float, float, float, float)
+
 ```
 
 ```{tip}
 For optimal results:
 
 - Use 0.1° azimuth search increments
-- Apply quality thresholds: SZR ≥ 0.45, ERTR ≥ 0.45, ERRZ ≥ -1
-- Normalize energy ratios before optimization
+- Normalize before optimization
 ```
 
 ```{admonition} Formula
-The optimization maximizes:
+The optimization minimazes:
 
 $$
-\mathcal{F}(\phi) = (1-SS) + SZR + (1-ERTR)
+\mathcal{Cost}(\phi) = SS_{T} - CC_{RZ}
 $$
 
 Where:
-- $SS$ = Normalized transverse component energy
-- $SZR$ = Vertical-radial correlation
-- $ERTR$ = Transverse/Radial energy
+- $SS_{T}$ = Normalized transverse component energy
+- $CC_{RZ}$ = Radial-to-vertical Pearson correlation
 ```
 
 -------------
@@ -61,10 +63,11 @@ Where:
 
     - Back-azimuth estimation
     - Sensor misorientation detection
+    - Time instability
     - Instrument gain calculation
     - Data quality assessment
 
-    Applies five quality criteria with configurable thresholds.
+    Applies quality criteria with configurable thresholds.
 
     :type tr1: numpy.ndarray
     :param tr1: First horizontal component (typically North)
@@ -86,10 +89,10 @@ Where:
 **Quality Criteria Thresholds**:
 
 1. SNR ≥ 10 dB
-2. Vertical-radial correlation ≥ 0.45
-3. Transverse/radial ratio ≤ 0.55 (ERTR ≥ 0.45)
-4. Time residual |Δt| < 90s
-5. Radial/vertical ratio > user-defined (default: -1)
+2. Vertical-radial correlation ≥ 0.5
+3. Transverse/radial energy ratio ≤ 0.2
+4. -90 sec < Time residual |Δt| < 90 sec
+5. Radial/vertical energy ratio ≤ 2
 ```
 
 ```{admonition} Component rotation implemented as:
@@ -104,19 +107,19 @@ T
 -\sin\phi & \cos\phi  
 \end{pmatrix}
 \begin{pmatrix}
-H_1 \\ 
-H_2 
+H_{N} \\ 
+H_{E} 
 \end{pmatrix}
 $$
 
 Where energy ratios are calculated as:
 
 $$
-ERTR = 1 - \frac{\int T^2(t)dt}{\int R^2(t)dt}
+ETER = \frac{\int T^2(t)dt}{\int R^2(t)dt}
 $$
 
 $$
-ERRZ = 1 - \frac{\int R^2(t)dt}{\int Z^2(t)dt}
+EREZ = \frac{\int R^2(t)dt}{\int Z^2(t)dt}
 $$
 ```
 

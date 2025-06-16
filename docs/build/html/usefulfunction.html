@@ -91,27 +91,29 @@
 <h2>Find sensor misorientation<a class="headerlink" href="#find-sensor-misorientation" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">find_orientation(baz,</span> <span class="pre">SS,</span> <span class="pre">SZR,</span> <span class="pre">ERTR,</span> <span class="pre">ERRZ):</span></span></dt>
-<dd><p>Calculates optimal back-azimuth (φ) and sensor misorientation (θ) by evaluating:</p>
+<span class="sig-name descname"><span class="pre">find_orientation(baz,</span> <span class="pre">SS,</span> <span class="pre">CCRZ,</span> <span class="pre">ETER,</span> <span class="pre">EREZ):</span></span></dt>
+<dd><p>This function calculates the best back azimuth (φ) and sensor misorientation (θ) based on the
+given quality criteria:</p>
 <ul class="simple">
-<li><p>Signal strength (SS)</p></li>
-<li><p>Vertical-radial component similarity (SZR)</p></li>
-<li><p>Transverse-to-radial energy ratio (ERTR)</p></li>
-<li><p>Radial-to-vertical energy ratio (ERRZ)</p></li>
+<li><p>Transverse signal strength (SS),</p></li>
+<li><p>Similarity of radial and vertical components (CCRZ),</p></li>
+<li><p>Transverse-to-radial energy ratio (ETER), and</p></li>
+<li><p>Radial-to-vertical energy ratio (EREZ).</p></li>
 </ul>
-<p>The cost function combines these criteria to maximize solution quality through systematic azimuth search.</p>
+<p>The cost function combines these criteria in such a way that minimazing the cost function helps to
+find the optimal back azimuth and corresponding orientation. The function outputs the best back azimuth, orientation, and the values of the quality criteria at the best azimuth index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>baz</strong> (<em>float</em>) – Initial back-azimuth from taup model (degrees)</p></li>
-<li><p><strong>SS</strong> (<em>numpy.ndarray</em>) – Signal strength array (0-1 normalized)</p></li>
-<li><p><strong>SZR</strong> (<em>numpy.ndarray</em>) – Vertical-radial similarity array (correlation coefficients)</p></li>
-<li><p><strong>ERTR</strong> (<em>numpy.ndarray</em>) – Transverse-to-radial energy ratios</p></li>
-<li><p><strong>ERRZ</strong> (<em>numpy.ndarray</em>) – Radial-to-vertical energy ratios</p></li>
+<li><p><strong>SS</strong> (<em>numpy.ndarray</em>) – Transverse signal strength array (0 to 1 normalized)</p></li>
+<li><p><strong>CCRZ</strong> (<em>numpy.ndarray</em>) – Vertical-radial similarity array (-1 to 1 normalized)</p></li>
+<li><p><strong>ETER</strong> (<em>numpy.ndarray</em>) – Transverse-to-radial energy ratios</p></li>
+<li><p><strong>EREZ</strong> (<em>numpy.ndarray</em>) – Radial-to-vertical energy ratios</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>φ, θ, SS_best, SZR_best, ERTR_best, ERRZ_best</p>
+<dd class="field-even"><p>φ, θ, SS_best, SZR_best, ETERR_best, EREZ_best</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple of (float, float, float, float, float, float)</p>
@@ -124,22 +126,20 @@
 <p>For optimal results:</p>
 <ul class="simple">
 <li><p>Use 0.1° azimuth search increments</p></li>
-<li><p>Apply quality thresholds: SZR ≥ 0.45, ERTR ≥ 0.45, ERRZ ≥ -1</p></li>
-<li><p>Normalize energy ratios before optimization</p></li>
+<li><p>Normalize before optimization</p></li>
 </ul>
 </div>
 <div class="admonition-formula admonition">
 <p class="admonition-title">Formula</p>
-<p>The optimization maximizes:</p>
+<p>The optimization minimazes:</p>
 <div class="math notranslate nohighlight">
 \[
-\mathcal{F}(\phi) = (1-SS) + SZR + (1-ERTR)
+\mathcal{Cost}(\phi) = SS_{T} - CC_{RZ}
 \]</div>
 <p>Where:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(SS\)</span> = Normalized transverse component energy</p></li>
-<li><p><span class="math notranslate nohighlight">\(SZR\)</span> = Vertical-radial correlation</p></li>
-<li><p><span class="math notranslate nohighlight">\(ERTR\)</span> = Transverse/Radial energy</p></li>
+<li><p><span class="math notranslate nohighlight">\(SS_{T}\)</span> = Normalized transverse component energy</p></li>
+<li><p><span class="math notranslate nohighlight">\(CC_{RZ}\)</span> = Radial-to-vertical Pearson correlation</p></li>
 </ul>
 </div>
 </section>
@@ -153,10 +153,11 @@
 <ul class="simple">
 <li><p>Back-azimuth estimation</p></li>
 <li><p>Sensor misorientation detection</p></li>
+<li><p>Time instability</p></li>
 <li><p>Instrument gain calculation</p></li>
 <li><p>Data quality assessment</p></li>
 </ul>
-<p>Applies five quality criteria with configurable thresholds.</p>
+<p>Applies quality criteria with configurable thresholds.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -182,10 +183,10 @@
 <p><strong>Quality Criteria Thresholds</strong>:</p>
 <ol class="arabic simple">
 <li><p>SNR ≥ 10 dB</p></li>
-<li><p>Vertical-radial correlation ≥ 0.45</p></li>
-<li><p>Transverse/radial ratio ≤ 0.55 (ERTR ≥ 0.45)</p></li>
-<li><p>Time residual |Δt| &lt; 90s</p></li>
-<li><p>Radial/vertical ratio &gt; user-defined (default: -1)</p></li>
+<li><p>Vertical-radial correlation ≥ 0.5</p></li>
+<li><p>Transverse/radial energy ratio ≤ 0.2</p></li>
+<li><p>-90 sec &lt; Time residual |Δt| &lt; 90 sec</p></li>
+<li><p>Radial/vertical energy ratio ≤ 2</p></li>
 </ol>
 </div>
 <div class="admonition-component-rotation-implemented-as admonition">
@@ -201,18 +202,18 @@ T
 -\sin\phi &amp; \cos\phi  
 \end{pmatrix}
 \begin{pmatrix}
-H_1 \\ 
-H_2 
+H_{N} \\ 
+H_{E} 
 \end{pmatrix}
 \end{split}\]</div>
 <p>Where energy ratios are calculated as:</p>
 <div class="math notranslate nohighlight">
 \[
-ERTR = 1 - \frac{\int T^2(t)dt}{\int R^2(t)dt}
+ETER = \frac{\int T^2(t)dt}{\int R^2(t)dt}
 \]</div>
 <div class="math notranslate nohighlight">
 \[
-ERRZ = 1 - \frac{\int R^2(t)dt}{\int Z^2(t)dt}
+EREZ = \frac{\int R^2(t)dt}{\int Z^2(t)dt}
 \]</div>
 </div>
 <div class="admonition seealso">
