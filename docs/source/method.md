@@ -1,5 +1,8 @@
 # Methodology
 
+<span style="display:block;text-align:center">![image](_static/images/flowchart_method.png)
+<p style="text-align:center"><em>Figure 1:</em> Flowchart summarizing the methodology steps.</p>
+
 ## Input data step
 
 The methodology relies on three key input datasets, each provided in standard seismological formats to ensure compatibility with widely used seismic analysis tools:
@@ -96,13 +99,13 @@ With the index of the best azimuth determined, the corresponding angle (<code>ph
 To further characterize the optimal azimuth identified, the corresponding values of each quality metric are retrieved from their respective arrays using the <code>best_index</code>. These include <code>best(SS<sub>T</sub>)</code>, <code>best(CC<sub>RZ</sub>)</code>, <code>best(E<sub>T</sub>/E<sub>R</sub>)</code>, and <code>best(E<sub>R</sub>/E<sub>Z</sub>)</code>. These metrics provide a comprehensive summary of the signal characteristics at the optimal orientation and can be used to evaluate the robustness and reliability of the estimated parameters. By examining these values, researchers can also assess the degree of confidence in the optimization results.
 
 <span style="display:block;text-align:center">![image](_static/images/METRICS_EXAMPLE.png)
-
+<p style="text-align:center"><em>Figure 2:</em> Figure summarizing the metricis steps.</p>
 **7. Assessment of overall station quality**
 
 The assessment of overall station quality prioritizes misorientation over gain and time instability, leading to the development of a systematic method to identify misorientation trends while excluding outliers, particularly relevant for permanent deployments where orientation may vary over time. Using DBSCAN, a density-based clustering algorithm, the approach detects misorientation periods by analyzing local data density, with clusters requiring a minimum of 20% of total samples (<code>minPts</code>) for statistical significance. The neighborhood radius (<code>episilon</code>) is optimized via silhouette score (<code>ss</code>) analysis, where <code>ss ≥ 0.2</code> indicates well-defined clusters, allowing independent misorientation computation per cluster; otherwise, misorientation is estimated across the entire period using the interquartile range (IQR) to minimize outlier effects, ensuring robust station quality evaluation under diverse conditions.
 
 <span style="display:block;text-align:center">![image](_static/images/FINAL_ANALYSIS_EXAMPLE.png)
-
+<p style="text-align:center"><em>Figure 3:</em> Figure summarizing final result.</p>
 **8. Output Results**
 
 The final stage of the methodology involves compiling and returning the computed results. These outputs can then be used for further interpretation or incorporated into larger workflows, such as seismic event characterization or sensor calibration routines.
