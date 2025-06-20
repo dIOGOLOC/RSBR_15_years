@@ -467,14 +467,14 @@ def calculate_metrics(input_lst):
                                 # Remove 5 seconds from the beginning and end of the waveform to eliminate edge effects
                                 
                                 # HHE
-                                tr2_data_filtered = tr2_data_file[0].data[500:-500]
+                                tr2_data_filtered = tr2_data_file[0].data[int(5 * trZ_data_file[0].stats.sampling_rate):int(-5 * trZ_data_file[0].stats.sampling_rate)]
                                 
                                 # HHN
-                                tr1_data_filtered = tr1_data_file[0].data[500:-500]
+                                tr1_data_filtered = tr1_data_file[0].data[int(5 * trZ_data_file[0].stats.sampling_rate):int(-5 * trZ_data_file[0].stats.sampling_rate)]
                                     
                                 # HHZ
-                                trZ_data_filtered = trZ_data_file[0].data[500:-500]
-                                trZ_time = trZ_data_file[0].times()[500:-500]-TIME_WINDOW
+                                trZ_data_filtered = trZ_data_file[0].data[int(5 * trZ_data_file[0].stats.sampling_rate):int(-5 * trZ_data_file[0].stats.sampling_rate)]
+                                trZ_time = trZ_data_file[0].times()[int(5 * trZ_data_file[0].stats.sampling_rate):int(-5 * trZ_data_file[0].stats.sampling_rate)]-TIME_WINDOW
 
                                 # -------------------------------------------
                                 # Function estimates the Akaike Information directly from data 
